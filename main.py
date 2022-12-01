@@ -8,6 +8,7 @@ class MyWidget(QWidget, Ui_Dialog):
     def __init__(self):
         super(MyWidget, self).__init__()
         self.setupUi(self)
+        self.pbOpen.clicked.connect(self.open)
 
     def open(self):
         try:
@@ -26,7 +27,7 @@ class MyWidget(QWidget, Ui_Dialog):
             self.twStaffs.setRowCount(self.twStaffs.rowCount()+1)
             for j, elem in enumerate(row):
                 self.twStaffs.setItem(i, j, QTableWidgetItem(str(elem)))
-        self.twStaffs.resizeColumnToContents()
+        self.twStaffs.resizeColumnsToContents()
 
 
 
