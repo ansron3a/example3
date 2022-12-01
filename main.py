@@ -4,12 +4,17 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidgetItem
 from form_staff import Ui_Dialog
 
+STAFF_POSTS = ['бухгалтер', 'менеджер', 'программист']
+
+
 class MyWidget(QWidget, Ui_Dialog):
     def __init__(self):
         super(MyWidget, self).__init__()
         self.setupUi(self)
+        self.cbPost.addItems(STAFF_POSTS)
         self.pbOpen.clicked.connect(self.open)
         self.pbInsert.clicked.connect(self.insert)
+        self.pbDelete.clicked.connect(self.delete)
 
     def open(self):
         try:
@@ -25,7 +30,21 @@ class MyWidget(QWidget, Ui_Dialog):
         self.twStaffs.setHorizontalHeaderLabels(col_name)
         self.twStaffs.setRowCount(0)
         for i, row in enumerate(data_rows):
-            self.twStaffs.setRowCount(self.twStaffs.rowCount()+1)
+            self.twStaffs.setRowCount(self.twStaffs.rowCount() + 1)
+            for j, elem in enumerate(row):
+                self.twStaffs.setItem(i, j, QTableWidgetItem(str(elem)))
+        self.twStaffs.resizeColumnsToContents()
+
+    def update(self, query="select * from staff"):
+        try:
+            cur = self.conn.cursor()
+            data = cur.execute(query).fetchall()
+        except Exception as e:
+            print(f"Проблемы с подключением к БД. {e}")
+            return e
+        self.twStaffs.setRowCount(0)
+        for i, row in enumerate(data):
+            self.twStaffs.setRowCount(self.twStaffs.rowCount() + 1)
             for j, elem in enumerate(row):
                 self.twStaffs.setItem(i, j, QTableWidgetItem(str(elem)))
         self.twStaffs.resizeColumnsToContents()
@@ -43,6 +62,21 @@ class MyWidget(QWidget, Ui_Dialog):
         except Exception as e:
             print("Не смогли добавить запись.")
             return e
+        self.update()
+
+    def delete(self):
+        row = self.twStaffs.currentRow()
+        num = self.twStaffs.item(row, 0).text()
+        try:
+            cur = self.conn.cursor()
+            cur.execute(f"delete from staff where num = {num}")
+            self.conn.commit()
+            cur.close()
+        except Exception as e:
+            print(f"Исключение: {e}")
+            return e
+        self.update_twStaffs()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
